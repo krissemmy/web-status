@@ -11,6 +11,7 @@ struct AppState {
     tera: Arc<Tera>,
     http: Client,
     rpc_url: String,
+    chain_name: String,
 }
 
 #[derive(Serialize, Deserialize)]
@@ -67,10 +68,13 @@ async fn main() {
 
     let mut tera = Tera::default();
     tera.add_raw_template("index.html", INDEX_HTML).expect("template");
+    let chain_name = std::env::var("CHAIN_NAME").unwrap_or_else(|_| "unknown".into());
+
     let state = AppState {
         tera: Arc::new(tera),
         http: Client::new(),
         rpc_url,
+        chain_name,
     };
 
     let app = Router::new()
@@ -128,6 +132,7 @@ async fn node_latency(State(state): State<AppState>) -> Json<LatencyResp> {
 async fn index(State(state): State<AppState>) -> Html<String> {
     let mut ctx = Context::new();
     ctx.insert("title", "Web3 Node Current Block Status");
+    ctx.insert("chain_name", &state.chain_name);
     let html = state.tera.render("index.html", &ctx).unwrap();
     Html(html)
 }
@@ -151,7 +156,8 @@ async fn latest_block(State(state): State<AppState>) -> Json<serde_json::Value> 
 
     Json(serde_json::json!({
     "blockNumberHex": block_str,
-    "blockNumber": block_num
+    "blockNumber": block_num,
+    "chain": state.chain_name,
     }))
 }
 
@@ -176,7 +182,7 @@ const INDEX_HTML: &str = r##"<!doctype html>
   </style>
 </head>
 <body>
-  <h1>Web3 Node Current Block Status</h1>
+  <h1>{{ title }} ({{ chain_name }})</h1>
 
   <!-- Block Number Card -->
   <div class="card">
