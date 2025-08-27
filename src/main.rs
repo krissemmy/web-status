@@ -222,10 +222,10 @@ const INDEX_HTML: &str = r##"<!doctype html>
       </button>
     </div>
 
-    <!-- auto poll latency every 7s -->
+    <!-- auto poll latency every 15s -->
     <div
       hx-get="/api/node-latency"
-      hx-trigger="load, every 7s"
+      hx-trigger="load, every 15s"
       hx-target="#latency-json"
       hx-swap="innerHTML">
     </div>
